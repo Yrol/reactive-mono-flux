@@ -187,4 +187,29 @@ public class ReactiveMonoFluxTest {
                 .expectNext("J", "A", "M", "E", "S")
                 .verifyComplete();
     }
+
+    @Test
+    void testTransform_whenCallingNamesFluxTransform_returnFlux() {
+        var namesFlux = reactiveMonoFlux.namesFluxTransform(3);
+
+        StepVerifier.create(namesFlux)
+                .expectNext("A", "L", "E", "X", "C", "H", "L", "O", "E")
+                .verifyComplete();
+    }
+
+    @Test
+    void testDefaultOutput_whenCallingNamesDefaultIfEmpty_returnFluxOfDefaultString() {
+        var namesFlux = reactiveMonoFlux.namesDefaultIfEmpty();
+        StepVerifier.create(namesFlux)
+                .expectNext("default")
+                .verifyComplete();
+    }
+
+    @Test
+    void testSwitchIfEmpty_whenCallingNamesSwitchIfEmpty_returnFluxOfDefaultString() {
+        var namesFlux = reactiveMonoFlux.namesSwitchIfEmpty();
+        StepVerifier.create(namesFlux)
+                .expectNext("D", "E", "F", "A", "U", "L", "T")
+                .verifyComplete();
+    }
 }

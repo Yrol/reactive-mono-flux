@@ -11,6 +11,7 @@ import reactor.core.publisher.Mono;
 import java.time.Duration;
 import java.util.List;
 import java.util.Random;
+import java.util.function.Function;
 
 @SpringBootApplication
 public class ReactiveMonoFlux implements CommandLineRunner {
@@ -90,6 +91,8 @@ public class ReactiveMonoFlux implements CommandLineRunner {
                 .log();
     }
 
+
+
     /**
      * Mimicking the Async behaviour of flatmaps
      * **/
@@ -134,6 +137,63 @@ public class ReactiveMonoFlux implements CommandLineRunner {
                 .map(String::toUpperCase)
                 .filter(s -> s.length() > stringLength)
                 .flatMapMany(this::splitString)
+                .log();
+    }
+
+
+    /**
+     * Using transform()
+     * Will be used for transforming one type to another
+     * Accepts Function Functional Interface
+     * Input - Publisher (Flux or Mono)
+     * Output - Publisher (Flux or Mono)
+     * **/
+    public Flux<String> namesFluxTransform(int stringLength) {
+
+        /**
+         * Creating a functional interface which accepts and outputs Flux of strings
+         * Extracting functions (map()  and filter()) and assign it to a functional variable - filterMap
+         * Benefit - re-usability when using these functions across the codebase (extract, assign and reuse).
+         * **/
+        Function<Flux<String>, Flux<String>> filterMap = name -> name.map(String::toUpperCase)
+                .filter(s->s.length() > stringLength);
+
+        return Flux.fromIterable(List.of("Alex", "Ben", "Chloe"))
+                .transform(filterMap)
+                .flatMap(this::splitString)
+                .log();
+    }
+
+    /**
+     * Working with defaultIfEmpty
+     * Used for returning a default value the stream is empty (i.e. output contains only onComplete without any onNext)
+     * The following will always return the default value since names are less than 10 chars
+     * **/
+    public Flux<String> namesDefaultIfEmpty() {
+        return Flux.fromIterable(List.of("Alex", "Ben", "Chloe"))
+                .map(String::toUpperCase)
+                .filter(s->s.length() > 10) // using lambda functions
+                .flatMap(this::splitString)
+                .defaultIfEmpty("default")
+                .log();
+    }
+
+    /**
+     * Working with switchIfEmpty
+     **/
+    public Flux<String> namesSwitchIfEmpty() {
+
+        Function<Flux<String>, Flux<String>> filterMap = name -> name.map(String::toUpperCase)
+                .filter(s->s.length() > 6)
+                .flatMap(this::splitString);
+
+        // Creating a publisher (this can be either Mono or Flux)
+        var defualtFlux =  Flux.just("default")
+                .transform(filterMap); // return "D", "E", "F", "A", "U", "L", "T" if the above string condition is not met.
+
+        return Flux.fromIterable(List.of("Alex", "Ben", "Chloe"))
+                .transform(filterMap)
+                .switchIfEmpty(defualtFlux)
                 .log();
     }
 
