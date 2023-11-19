@@ -199,6 +199,46 @@ public class ReactiveMonoFlux implements CommandLineRunner {
 
 
     /**
+     * Working with Concat
+     * This can be used for combining multiple streams of responses (ex: outputs from multiple API services)
+     * **/
+    public Flux<String> exploreConcat() {
+        
+        // Mimicking 2 services (publishers)
+        var serviceOneResponse = Flux.just("A", "B", "C");
+        var serviceTwoResponse = Flux.just("D", "E", "F");
+
+        return Flux.concat(serviceOneResponse, serviceTwoResponse).log();
+    }
+
+
+    /**
+     * Working with ConcatWith - Flux streams
+     * This can be used for combining outputs (multiple elements) from multiple services
+     * **/
+    public Flux<String> exploreConcatWithFlux() {
+        // Mimicking 2 services (publishers)
+        var serviceOneResponse = Flux.just("A", "B", "C");
+        var serviceTwoResponse = Flux.just("D", "E", "F");
+
+        return serviceOneResponse.concatWith(serviceTwoResponse).log();
+    }
+
+
+    /**
+     * Working with ConcatWith - Mono streams
+     * This can be used when two different service return Mono outputs
+     * **/
+    public Flux<String> exploreConcatWithMono() {
+        // Mimicking 2 services (publishers)
+        var serviceOneResponse =  Mono.just("A");
+        var serviceTwoResponse = Mono.just("B");
+
+        return serviceOneResponse.concatWith(serviceTwoResponse).log(); // A, B
+    }
+
+
+    /**
      * Supportive function for splitting a string with a delay and return Flux of String
      * **/
     public Flux<String> splitStringWithDelay(String name) {

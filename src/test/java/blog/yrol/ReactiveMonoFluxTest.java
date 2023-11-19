@@ -212,4 +212,29 @@ public class ReactiveMonoFluxTest {
                 .expectNext("D", "E", "F", "A", "U", "L", "T")
                 .verifyComplete();
     }
+
+    @Test
+    void testConcat_whenCallingExploreConcat_returnFluxOfMultipleStrings() {
+        var namesFlux = reactiveMonoFlux.exploreConcat();
+        StepVerifier.create(namesFlux)
+                .expectNext("A", "B", "C", "D", "E", "F")
+                .verifyComplete();
+    }
+
+
+    @Test
+    void testConcatWith_whenCallingExploreConcatWithFlux_returnFluxOfMultipleStrings() {
+        var namesFlux = reactiveMonoFlux.exploreConcatWithFlux();
+        StepVerifier.create(namesFlux)
+                .expectNext("A", "B", "C", "D", "E", "F")
+                .verifyComplete();
+    }
+
+    @Test
+    void testConcatWithMono_whenCallingExploreConcatWithMono_returnFluxOfConcatenatedMonoStrings() {
+        var namesFlux = reactiveMonoFlux.exploreConcatWithMono();
+        StepVerifier.create(namesFlux)
+                .expectNext("A", "B")
+                .verifyComplete();
+    }
 }
