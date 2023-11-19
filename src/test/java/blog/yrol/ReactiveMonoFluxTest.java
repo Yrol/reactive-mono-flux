@@ -237,4 +237,20 @@ public class ReactiveMonoFluxTest {
                 .expectNext("A", "B")
                 .verifyComplete();
     }
+
+    @Test
+    void testMerge_whenCallingExploreMerge_returnFluxOfMultipleStrings() {
+        var namesFlux = reactiveMonoFlux.exploreMerge();
+        StepVerifier.create(namesFlux)
+                .expectNext("A", "D", "B", "E", "C", "F")
+                .verifyComplete();
+    }
+
+    @Test
+    void testMerge_whenCallingExploreMergeWith_returnFluxOfMultipleStrings() {
+        var namesFlux = reactiveMonoFlux.exploreMergeWith();
+        StepVerifier.create(namesFlux)
+                .expectNext("A","B")
+                .verifyComplete();
+    }
 }

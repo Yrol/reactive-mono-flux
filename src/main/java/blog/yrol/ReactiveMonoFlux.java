@@ -239,6 +239,34 @@ public class ReactiveMonoFlux implements CommandLineRunner {
 
 
     /**
+     * Working with merge()
+     * Adding delayElements to mimic delay
+     * The following will result: "A", "D", "B", "E", "C", "F"
+     * serviceOneResponse has the lowest waiting time (100 milliseconds), hence it will be started first.
+     * **/
+    public Flux<String> exploreMerge() {
+
+        // Mimicking 2 services with delays in milliseconds (publishers)
+        var serviceOneResponse = Flux.just("A", "B", "C").delayElements(Duration.ofMillis(100));
+        var serviceTwoResponse = Flux.just("D", "E", "F").delayElements(Duration.ofMillis(125));
+
+
+        return Flux.merge(serviceOneResponse, serviceTwoResponse).log();
+    }
+
+    /**
+     * Working with mergeWith() and Mono
+     * **/
+    public Flux<String> exploreMergeWith() {
+
+        // Mimicking 2 services with delays in milliseconds (publishers)
+        var serviceOneResponse = Mono.just("A");
+        var serviceTwoResponse = Mono.just("B");
+
+        return serviceOneResponse.mergeWith(serviceTwoResponse).log();
+    }
+
+    /**
      * Supportive function for splitting a string with a delay and return Flux of String
      * **/
     public Flux<String> splitStringWithDelay(String name) {
