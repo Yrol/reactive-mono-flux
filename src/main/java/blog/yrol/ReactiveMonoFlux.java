@@ -8,12 +8,22 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.time.Duration;
 import java.util.List;
+import java.util.Random;
 
 @SpringBootApplication
 public class ReactiveMonoFlux implements CommandLineRunner {
     
     public static final Logger LOG = LoggerFactory.getLogger(ReactiveMonoFlux.class);
+
+    /**
+     * Returning a single element data
+     * Using optional log() for printing the events
+     * **/
+    public Mono<String> nameMono() {
+        return Mono.just("James").log();
+    }
 
 
     /**
@@ -23,14 +33,6 @@ public class ReactiveMonoFlux implements CommandLineRunner {
     public Flux<String> namesFlux() {
         return Flux.fromIterable(List.of("Alex", "Ben", "Chloe"))
                 .log();
-    }
-
-    /**
-     * Returning a single element data
-     * Using optional log() for printing the events
-     * **/
-    public Mono<String> nameMono() {
-        return Mono.just("James").log();
     }
 
     /**
@@ -49,7 +51,7 @@ public class ReactiveMonoFlux implements CommandLineRunner {
      * **/
     public Flux<String> namesFluxImmutability() {
         var namesFlux =  Flux.fromIterable(List.of("Alex", "Ben", "Chloe"));
-        namesFlux.map(String::toUpperCase);
+        namesFlux.map(String::toUpperCase); // not effective
         return namesFlux;
     }
 
@@ -89,7 +91,73 @@ public class ReactiveMonoFlux implements CommandLineRunner {
     }
 
     /**
-     * Supportive function which converts a string to flatmap and return as a Flux. Ex: ALEX -> FLUX(A,L,E,X)
+     * Mimicking the Async behaviour of flatmaps
+     * **/
+    public Flux<String> namesFluxFlatmapAsync(int stringLength) {
+        return Flux.fromIterable(List.of("Alex", "Ben", "Chloe"))
+                .map(String::toUpperCase)
+                .filter(s->s.length() > stringLength) // using lambda functions
+//                .flatMap(s->splitString(s)) // Another way to call splitString()
+                .flatMap(this::splitStringWithDelay)
+                .log();
+    }
+
+
+    /**
+     * Using ConcatMap in Async
+     * Unlike using flatMaps with Async, this will preserve the ordering of the elements
+     * Trade-off (flatMaps vs concatMap): processing time will take longer
+     * **/
+    public Flux<String> namesFluxFlatmapAsyncConcat(int stringLength) {
+        return Flux.fromIterable(List.of("Alex", "Ben", "Chloe"))
+                .map(String::toUpperCase)
+                .filter(s->s.length() > stringLength) // using lambda functions
+//                .flatMap(s->splitString(s)) // Another way to call splitString()
+                .concatMap(this::splitStringWithDelay)
+                .log();
+    }
+
+    public Mono<List<String>> nameMonoFlatMap(int stringLength) {
+        return Mono.just("James")
+                .map(String::toUpperCase)
+                .filter(s -> s.length() > stringLength)
+                .flatMap(this::splitStringMono)
+                .log();
+    }
+
+    /**
+     * Example using flatMapMany
+     * Unlike flatmap, the flatMapMany can only be used with Flux as return type
+     * **/
+    public Flux<String> nameMonoFlatMapMany(int stringLength) {
+        return Mono.just("James")
+                .map(String::toUpperCase)
+                .filter(s -> s.length() > stringLength)
+                .flatMapMany(this::splitString)
+                .log();
+    }
+
+
+    /**
+     * Supportive function for splitting a string with a delay and return Flux of String
+     * **/
+    public Flux<String> splitStringWithDelay(String name) {
+        var delay = new Random().nextInt(1000);
+        var charArray = name.split(""); // Splitting name string and put each char into an array
+
+        // Adding a random delay under one second
+        return Flux.fromArray(charArray)
+                .delayElements(Duration.ofMillis(delay));
+    }
+
+    private Mono<List<String>> splitStringMono(String s) {
+        var charArray = s.split("");
+        var charList = List.of(charArray); // ALEX -> A, L, E, X
+        return Mono.just(charList);
+    }
+
+    /**
+     * Supportive function which converts a string to flatmap and return Flux of String. Ex: ALEX -> FLUX(A,L,E,X)
      * **/
     public Flux<String> splitString(String name) {
         var charArray = name.split(""); // Splitting name string and put each char into an array

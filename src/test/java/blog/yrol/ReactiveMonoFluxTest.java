@@ -3,6 +3,8 @@ package blog.yrol;
 import org.junit.jupiter.api.Test;
 import reactor.test.StepVerifier;
 
+import java.util.List;
+
 /**
  * Test case creation for Reative Flux
  * Reative Flux cannot be tested with Junit Assertions, hence a special library is being used - reactor-test
@@ -10,6 +12,17 @@ import reactor.test.StepVerifier;
 public class ReactiveMonoFluxTest {
 
     ReactiveMonoFlux reactiveMonoFlux = new ReactiveMonoFlux();
+
+    @Test
+    void testMono_whenCallingNameMono_returnName() {
+        // Arrange
+        var namesFlux = reactiveMonoFlux.nameMono();
+
+        // Act and Assert
+        StepVerifier.create(namesFlux)
+                .expectNext("James")
+                .verifyComplete();
+    }
     
     /**
      * Testing the namesFlux
@@ -123,4 +136,55 @@ public class ReactiveMonoFluxTest {
                 .verifyComplete();
     }
 
+
+    /**
+     * Testing Async behaviour of the Flatmaps
+     */
+    @Test
+    void testAsyncBehaviour_whenCallingNamesFluxFlatmapAsync_returnNamesInRandomOrder() {
+        // Arrange
+        var namesFlux = reactiveMonoFlux.namesFluxFlatmapAsync(3);
+
+        // Act and Assert
+        StepVerifier.create(namesFlux)
+//                .expectNext("A", "L", "E", "X", "C", "H", "L", "O", "E") // won't work since the order of the element is not guaranteed
+                .expectNextCount(9)
+                .verifyComplete();
+    }
+
+    /**
+     * Testing Async behaviour of the Flatmaps
+     */
+    @Test
+    void testConcatBehaviour_whenCallingNamesFluxFlatmapConcat_returnNamesInOrder() {
+        // Arrange
+        var namesFlux = reactiveMonoFlux.namesFluxFlatmapAsyncConcat(3);
+
+        // Act and Assert
+        StepVerifier.create(namesFlux)
+                .expectNext("A", "L", "E", "X", "C", "H", "L", "O", "E")
+                .verifyComplete();
+    }
+
+    @Test
+    void testFlatmapWithMono_whenCallingNameMonoFlatMap_returnList() {
+        // Arrange
+        var namesFlux = reactiveMonoFlux.nameMonoFlatMap(3);
+
+        // Act and Assert
+        StepVerifier.create(namesFlux)
+                .expectNext(List.of("J", "A", "M", "E", "S"))
+                .verifyComplete();
+    }
+
+    @Test
+    void testFlatmapMany_whenCallingNameMonoFlatMapMany_returnFlux() {
+        // Arrange
+        var namesFlux = reactiveMonoFlux.nameMonoFlatMapMany(3);
+
+        // Act and Assert
+        StepVerifier.create(namesFlux)
+                .expectNext("J", "A", "M", "E", "S")
+                .verifyComplete();
+    }
 }
