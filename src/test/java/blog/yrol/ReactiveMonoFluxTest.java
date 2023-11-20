@@ -253,4 +253,36 @@ public class ReactiveMonoFluxTest {
                 .expectNext("A","B")
                 .verifyComplete();
     }
+
+    @Test
+    void testMergeSequential_whenCallingExploreMergeSequential_returnFluxOfStringsInSequence() {
+        var namesFlux = reactiveMonoFlux.exploreMergeSequential();
+        StepVerifier.create(namesFlux)
+                .expectNext("A", "B", "C", "D", "E", "F")
+                .verifyComplete();
+    }
+
+    @Test
+    void testZip_whenCallingExploreZip_returnFluxOfString() {
+        var namesFlux = reactiveMonoFlux.exploreZip();
+        StepVerifier.create(namesFlux)
+                .expectNext("AD", "BE", "CF")
+                .verifyComplete();
+    }
+
+    @Test
+    void testZipTuple_whenCallingExploreZipTuple_returnFluxOfString() {
+        var namesFlux = reactiveMonoFlux.exploreZipTuple();
+        StepVerifier.create(namesFlux)
+                .expectNext("AD14", "BE25", "CF36")
+                .verifyComplete();
+    }
+
+    @Test
+    void testZipWith_whenCallingExploreZipWith_returnFluxOfString() {
+        var namesFlux = reactiveMonoFlux.exploreZipWith();
+        StepVerifier.create(namesFlux)
+                .expectNext("AD", "BE", "CF")
+                .verifyComplete();
+    }
 }

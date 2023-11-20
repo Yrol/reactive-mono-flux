@@ -266,6 +266,57 @@ public class ReactiveMonoFlux implements CommandLineRunner {
         return serviceOneResponse.mergeWith(serviceTwoResponse).log();
     }
 
+
+    /**
+     * Working with mergeSequential
+     * In mergeSequential, the publishers are subscribed at the same time but the results are emitted in teh preferred sequence.
+     * Although there's a delay in each service, the results will be emitted in an order (in contrast to exploreMerge example above)
+     * **/
+    public Flux<String> exploreMergeSequential() {
+
+        // Mimicking 2 services with delays in milliseconds (publishers)
+        var serviceOneResponse = Flux.just("A", "B", "C").delayElements(Duration.ofMillis(100));
+        var serviceTwoResponse = Flux.just("D", "E", "F").delayElements(Duration.ofMillis(125));
+
+        return Flux.mergeSequential(serviceOneResponse, serviceTwoResponse).log();
+    }
+
+    /**
+     * Working with Zip
+     * **/
+    public Flux<String> exploreZip() {
+
+        // Mimicking 2 services with delays in milliseconds (publishers)
+        var serviceOneResponse = Flux.just("A", "B", "C");
+        var serviceTwoResponse = Flux.just("D", "E", "F");
+
+        return Flux.zip(serviceOneResponse, serviceTwoResponse, (first, second) -> first + second).log(); // AD, BE, CF
+    }
+
+    /**
+     * Working with Zip tuples and maps
+     * **/
+    public Flux<String> exploreZipTuple() {
+        var abcFlux = Flux.just("A", "B", "C");
+        var defFlux = Flux.just("D", "E", "F");
+        var _123Flux = Flux.just("1", "2", "3");
+        var _456Flux = Flux.just("4", "5", "6");
+        
+        return Flux.zip(abcFlux, defFlux, _123Flux, _456Flux)
+                .map(t4 -> t4.getT1()+ t4.getT2() + t4.getT3() + t4.getT4()).log();
+    }
+
+    /**
+     * Working with ZipWith
+     * **/
+    public Flux<String> exploreZipWith() {
+        var abcFlux = Flux.just("A", "B", "C");
+        var defFlux = Flux.just("D", "E", "F");
+
+        return abcFlux.zipWith(defFlux, (first, second) -> first + second).log();
+    }
+    
+
     /**
      * Supportive function for splitting a string with a delay and return Flux of String
      * **/
